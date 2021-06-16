@@ -225,19 +225,23 @@ class BookLifecycle(
     val pages = mediaRepository.getPagesSize(book.id)
     require(page in 1..pages) { "Page argument ($page) must be within 1 and book page count ($pages)" }
 
-    readProgressRepository.save(ReadProgress(book.id, user.id, page, page == pages))
-    eventPublisher.publishEvent(DomainEvent.BookUpdated(book, user))
+    val progress = ReadProgress(book.id, user.id, page, page == pages)
+    readProgressRepository.save(progress)
+    eventPublisher.publishEvent(DomainEvent.ReadProgressChanged(progress))
   }
 
-  fun markReadProgressCompleted(book: Book, user: KomgaUser) {
-    val media = mediaRepository.findById(book.id)
+  fun markReadProgressCompleted(bookId: String, user: KomgaUser) {
+    val media = mediaRepository.findById(bookId)
 
-    readProgressRepository.save(ReadProgress(book.id, user.id, media.pages.size, true))
-    eventPublisher.publishEvent(DomainEvent.BookUpdated(book, user))
+    val progress = ReadProgress(bookId, user.id, media.pages.size, true)
+    readProgressRepository.save(progress)
+    eventPublisher.publishEvent(DomainEvent.ReadProgressChanged(progress))
   }
 
   fun deleteReadProgress(book: Book, user: KomgaUser) {
-    readProgressRepository.delete(book.id, user.id)
-    eventPublisher.publishEvent(DomainEvent.BookUpdated(book, user))
+    readProgressRepository.findByBookIdAndUserIdOrNull(book.id, user.id)?.let { progress ->
+      readProgressRepository.delete(book.id, user.id)
+      eventPublisher.publishEvent(DomainEvent.ReadProgressDeleted(progress))
+    }
   }
 }

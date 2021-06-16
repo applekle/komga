@@ -9,6 +9,7 @@ import org.gotson.komga.interfaces.sse.dto.BookSseDto
 import org.gotson.komga.interfaces.sse.dto.CollectionSseDto
 import org.gotson.komga.interfaces.sse.dto.LibrarySseDto
 import org.gotson.komga.interfaces.sse.dto.ReadListSseDto
+import org.gotson.komga.interfaces.sse.dto.ReadProgressSseDto
 import org.gotson.komga.interfaces.sse.dto.SeriesSseDto
 import org.springframework.http.MediaType
 import org.springframework.jms.annotation.JmsListener
@@ -46,7 +47,7 @@ class SseController {
       is DomainEvent.SeriesDeleted -> "SeriesDeleted" to SeriesSseDto(event.series.id, event.series.libraryId)
 
       is DomainEvent.BookAdded -> "BookAdded" to BookSseDto(event.book.id, event.book.seriesId, event.book.libraryId)
-      is DomainEvent.BookUpdated -> "BookChanged" to BookSseDto(event.book.id, event.book.seriesId, event.book.libraryId, event.user?.id)
+      is DomainEvent.BookUpdated -> "BookChanged" to BookSseDto(event.book.id, event.book.seriesId, event.book.libraryId)
       is DomainEvent.BookDeleted -> "BookDeleted" to BookSseDto(event.book.id, event.book.seriesId, event.book.libraryId)
 
       is DomainEvent.ReadListAdded -> "ReadListAdded" to ReadListSseDto(event.readList.id, event.readList.bookIds.map { it.value })
@@ -56,6 +57,9 @@ class SseController {
       is DomainEvent.CollectionAdded -> "CollectionAdded" to CollectionSseDto(event.collection.id, event.collection.seriesIds)
       is DomainEvent.CollectionUpdated -> "CollectionChanged" to CollectionSseDto(event.collection.id, event.collection.seriesIds)
       is DomainEvent.CollectionDeleted -> "CollectionDeleted" to CollectionSseDto(event.collection.id, event.collection.seriesIds)
+
+      is DomainEvent.ReadProgressChanged -> "ReadProgressChanged" to ReadProgressSseDto(event.progress.bookId, event.progress.userId)
+      is DomainEvent.ReadProgressDeleted -> "ReadProgressDeleted" to ReadProgressSseDto(event.progress.bookId, event.progress.userId)
     }
 
     logger.debug { "Publish SSE: '$name':$data" }

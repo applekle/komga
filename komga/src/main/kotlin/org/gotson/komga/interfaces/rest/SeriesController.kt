@@ -40,7 +40,6 @@ import org.gotson.komga.interfaces.rest.dto.SeriesMetadataUpdateDto
 import org.gotson.komga.interfaces.rest.dto.TachiyomiReadProgressDto
 import org.gotson.komga.interfaces.rest.dto.TachiyomiReadProgressUpdateDto
 import org.gotson.komga.interfaces.rest.dto.restrictUrl
-import org.gotson.komga.interfaces.rest.dto.toDomain
 import org.gotson.komga.interfaces.rest.dto.toDto
 import org.gotson.komga.interfaces.rest.persistence.BookDtoRepository
 import org.gotson.komga.interfaces.rest.persistence.ReadProgressDtoRepository
@@ -415,7 +414,7 @@ class SeriesController(
     ).filterIndexed { index, _ -> index < readProgress.lastBookRead }
       .forEach { book ->
         if (book.readProgress?.completed != true)
-          bookLifecycle.markReadProgressCompleted(book.toDomain(), principal.user)
+          bookLifecycle.markReadProgressCompleted(book.id, principal.user)
       }
   }
 

@@ -23,7 +23,6 @@ import org.gotson.komga.interfaces.rest.dto.ReadListUpdateDto
 import org.gotson.komga.interfaces.rest.dto.TachiyomiReadProgressDto
 import org.gotson.komga.interfaces.rest.dto.TachiyomiReadProgressUpdateDto
 import org.gotson.komga.interfaces.rest.dto.restrictUrl
-import org.gotson.komga.interfaces.rest.dto.toDomain
 import org.gotson.komga.interfaces.rest.dto.toDto
 import org.gotson.komga.interfaces.rest.persistence.BookDtoRepository
 import org.gotson.komga.interfaces.rest.persistence.ReadProgressDtoRepository
@@ -267,7 +266,7 @@ class ReadListController(
         principal.user.getAuthorizedLibraryIds(null),
         UnpagedSorted(Sort.by(Sort.Order.asc("readList.number")))
       ).filterIndexed { index, _ -> index < readProgress.lastBookRead }
-        .forEach { book -> bookLifecycle.markReadProgressCompleted(book.toDomain(), principal.user) }
+        .forEach { book -> bookLifecycle.markReadProgressCompleted(book.id, principal.user) }
     } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
   }
 }

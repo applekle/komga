@@ -491,7 +491,7 @@ class BookController(
 
       try {
         if (readProgress.completed != null && readProgress.completed)
-          bookLifecycle.markReadProgressCompleted(book, principal.user)
+          bookLifecycle.markReadProgressCompleted(book.id, principal.user)
         else
           bookLifecycle.markReadProgress(book, principal.user, readProgress.page!!)
       } catch (e: IllegalArgumentException) {

@@ -366,7 +366,7 @@ class BookImporterTest(
         )
       }
 
-      bookLifecycle.markReadProgressCompleted(bookToUpgrade, user1)
+      bookLifecycle.markReadProgressCompleted(bookToUpgrade.id, user1)
       bookLifecycle.markReadProgress(bookToUpgrade, user2, 4)
 
       // when

@@ -13,7 +13,7 @@ sealed class DomainEvent : Serializable {
   data class SeriesDeleted(val series: Series) : DomainEvent()
 
   data class BookAdded(val book: Book) : DomainEvent() // TODO: publish that event
-  data class BookUpdated(val book: Book, val user: KomgaUser? = null) : DomainEvent() // TODO: check usage, need something else for read progress
+  data class BookUpdated(val book: Book) : DomainEvent()
   data class BookDeleted(val book: Book) : DomainEvent()
 
   data class CollectionAdded(val collection: SeriesCollection) : DomainEvent()
@@ -23,4 +23,7 @@ sealed class DomainEvent : Serializable {
   data class ReadListAdded(val readList: ReadList) : DomainEvent()
   data class ReadListUpdated(val readList: ReadList) : DomainEvent()
   data class ReadListDeleted(val readList: ReadList) : DomainEvent()
+
+  data class ReadProgressChanged(val progress: ReadProgress) : DomainEvent()
+  data class ReadProgressDeleted(val progress: ReadProgress) : DomainEvent()
 }

@@ -151,14 +151,15 @@ class SeriesLifecycle(
       .map { (bookId, pageSize) -> ReadProgress(bookId, user.id, pageSize, true) }
 
     readProgressRepository.save(progresses)
-    bookRepository.findAllBySeriesId(seriesId).forEach { eventPublisher.publishEvent(DomainEvent.BookUpdated(it, user)) }
-    // TODO: publish event for series changed for user
+    progresses.forEach { eventPublisher.publishEvent(DomainEvent.ReadProgressChanged(it)) }
   }
 
   fun deleteReadProgress(seriesId: String, user: KomgaUser) {
-    readProgressRepository.deleteByBookIdsAndUserId(bookRepository.findAllIdsBySeriesId(seriesId), user.id)
-    bookRepository.findAllBySeriesId(seriesId).forEach { eventPublisher.publishEvent(DomainEvent.BookUpdated(it, user)) }
-    // TODO: publish event for series changed for user
+    val bookIds = bookRepository.findAllIdsBySeriesId(seriesId)
+    val progresses = readProgressRepository.findAllByBookIdsAndUserId(bookIds, user.id)
+    readProgressRepository.deleteByBookIdsAndUserId(bookIds, user.id)
+
+    progresses.forEach { eventPublisher.publishEvent(DomainEvent.ReadProgressDeleted(it)) }
   }
 
   fun getThumbnail(seriesId: String): ThumbnailSeries? {

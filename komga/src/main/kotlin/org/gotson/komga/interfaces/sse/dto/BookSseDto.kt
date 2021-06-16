@@ -4,5 +4,4 @@ data class BookSseDto(
   val bookId: String,
   val seriesId: String,
   val libraryId: String,
-  val userId: String? = null,
 )
