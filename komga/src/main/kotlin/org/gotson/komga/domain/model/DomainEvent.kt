@@ -8,11 +8,11 @@ sealed class DomainEvent : Serializable {
   data class LibraryUpdated(val library: Library) : DomainEvent()
   data class LibraryDeleted(val library: Library) : DomainEvent()
 
-  data class SeriesAdded(val series: Series) : DomainEvent() // TODO: publish that event
+  data class SeriesAdded(val series: Series) : DomainEvent()
   data class SeriesUpdated(val series: Series) : DomainEvent()
   data class SeriesDeleted(val series: Series) : DomainEvent()
 
-  data class BookAdded(val book: Book) : DomainEvent() // TODO: publish that event
+  data class BookAdded(val book: Book) : DomainEvent()
   data class BookUpdated(val book: Book) : DomainEvent()
   data class BookDeleted(val book: Book) : DomainEvent()
 

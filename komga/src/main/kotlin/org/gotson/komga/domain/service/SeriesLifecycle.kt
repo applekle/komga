@@ -109,6 +109,8 @@ class SeriesLifecycle(
         bookId = it.id
       )
     }.let { bookMetadataRepository.insert(it) }
+
+    toAdd.forEach { eventPublisher.publishEvent(DomainEvent.BookAdded(it)) }
   }
 
   fun createSeries(series: Series): Series {
@@ -125,6 +127,8 @@ class SeriesLifecycle(
     bookMetadataAggregationRepository.insert(
       BookMetadataAggregation(seriesId = series.id)
     )
+
+    eventPublisher.publishEvent(DomainEvent.SeriesAdded(series))
 
     return seriesRepository.findByIdOrNull(series.id)!!
   }
