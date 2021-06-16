@@ -112,7 +112,7 @@ import PageSizeSelect from '@/components/PageSizeSelect.vue'
 import {parseQueryParam, parseQuerySort} from '@/functions/query-params'
 import {ReadStatus, replaceCompositeReadStatus} from '@/types/enum-books'
 import {SeriesStatus, SeriesStatusKeyValue} from '@/types/enum-series'
-import {LIBRARY_CHANGED, LIBRARY_DELETED, SERIES_CHANGED, SERIES_DELETED} from '@/types/events'
+import {LIBRARY_CHANGED, LIBRARY_DELETED, SERIES_ADDED, SERIES_CHANGED, SERIES_DELETED} from '@/types/events'
 import Vue from 'vue'
 import {Location} from 'vue-router'
 import {LIBRARIES_ALL, LIBRARY_ROUTE} from '@/types/library'
@@ -184,12 +184,14 @@ export default Vue.extend({
     },
   },
   created() {
+    this.$eventHub.$on(SERIES_ADDED, this.seriesChanged)
     this.$eventHub.$on(SERIES_CHANGED, this.seriesChanged)
     this.$eventHub.$on(SERIES_DELETED, this.seriesChanged)
     this.$eventHub.$on(LIBRARY_DELETED, this.libraryDeleted)
     this.$eventHub.$on(LIBRARY_CHANGED, this.libraryChanged)
   },
   beforeDestroy() {
+    this.$eventHub.$off(SERIES_ADDED, this.seriesChanged)
     this.$eventHub.$off(SERIES_CHANGED, this.seriesChanged)
     this.$eventHub.$off(SERIES_DELETED, this.seriesChanged)
     this.$eventHub.$off(LIBRARY_DELETED, this.libraryDeleted)

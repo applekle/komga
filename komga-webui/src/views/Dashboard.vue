@@ -136,11 +136,13 @@ import LibraryNavigation from '@/components/LibraryNavigation.vue'
 import {ReadStatus} from '@/types/enum-books'
 import {BookDto} from '@/types/komga-books'
 import {
+  BOOK_ADDED,
   BOOK_CHANGED,
   BOOK_DELETED,
   LIBRARY_DELETED,
   READPROGRESS_CHANGED,
   READPROGRESS_DELETED,
+  SERIES_ADDED,
   SERIES_CHANGED,
   SERIES_DELETED,
 } from '@/types/events'
@@ -174,8 +176,10 @@ export default Vue.extend({
   },
   created() {
     this.$eventHub.$on(LIBRARY_DELETED, this.libraryDeleted)
+    this.$eventHub.$on(SERIES_ADDED, this.seriesChanged)
     this.$eventHub.$on(SERIES_CHANGED, this.seriesChanged)
     this.$eventHub.$on(SERIES_DELETED, this.seriesChanged)
+    this.$eventHub.$on(BOOK_ADDED, this.bookChanged)
     this.$eventHub.$on(BOOK_CHANGED, this.bookChanged)
     this.$eventHub.$on(BOOK_DELETED, this.bookChanged)
     this.$eventHub.$on(READPROGRESS_CHANGED, this.readProgressChanged)
@@ -183,8 +187,10 @@ export default Vue.extend({
   },
   beforeDestroy() {
     this.$eventHub.$off(LIBRARY_DELETED, this.libraryDeleted)
+    this.$eventHub.$off(SERIES_ADDED, this.seriesChanged)
     this.$eventHub.$off(SERIES_CHANGED, this.seriesChanged)
     this.$eventHub.$off(SERIES_DELETED, this.seriesChanged)
+    this.$eventHub.$off(BOOK_ADDED, this.bookChanged)
     this.$eventHub.$off(BOOK_CHANGED, this.bookChanged)
     this.$eventHub.$off(BOOK_DELETED, this.bookChanged)
     this.$eventHub.$off(READPROGRESS_CHANGED, this.readProgressChanged)
