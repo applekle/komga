@@ -6,6 +6,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import {Theme} from "@/types/themes";
+import {LIBRARY_ADDED, LIBRARY_CHANGED, LIBRARY_DELETED} from "@/types/events";
 
 const cookieLocale = 'locale'
 const cookieTheme = 'theme'
@@ -73,9 +74,18 @@ export default Vue.extend({
     this.$cookies.keys()
       .filter(x => x.startsWith('collection.filter') || x.startsWith('library.filter') || x.startsWith('library.sort'))
       .forEach(x => this.$cookies.remove(x))
+
+
+    this.$eventHub.$on(LIBRARY_ADDED, this.reloadLibraries)
+    this.$eventHub.$on(LIBRARY_DELETED, this.reloadLibraries)
+    this.$eventHub.$on(LIBRARY_CHANGED, this.reloadLibraries)
   },
   beforeDestroy() {
     window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', this.systemThemeChange)
+
+    this.$eventHub.$off(LIBRARY_ADDED, this.reloadLibraries)
+    this.$eventHub.$off(LIBRARY_DELETED, this.reloadLibraries)
+    this.$eventHub.$off(LIBRARY_CHANGED, this.reloadLibraries)
   },
   watch: {
     "$store.state.persistedState.locale": {
@@ -116,6 +126,9 @@ export default Vue.extend({
           this.$vuetify.theme.dark = false
           break
       }
+    },
+    reloadLibraries(event: EventLibrary) {
+      this.$store.dispatch('getLibraries')
     },
   },
 })

@@ -54,7 +54,7 @@ import ItemBrowser from '@/components/ItemBrowser.vue'
 import LibraryNavigation from '@/components/LibraryNavigation.vue'
 import LibraryActionsMenu from '@/components/menus/LibraryActionsMenu.vue'
 import PageSizeSelect from '@/components/PageSizeSelect.vue'
-import {LIBRARY_CHANGED, READLIST_CHANGED, READLIST_DELETED} from '@/types/events'
+import {LIBRARY_CHANGED, READLIST_ADDED, READLIST_CHANGED, READLIST_DELETED} from '@/types/events'
 import Vue from 'vue'
 import {Location} from 'vue-router'
 import {LIBRARIES_ALL, LIBRARY_ROUTE} from '@/types/library'
@@ -87,11 +87,13 @@ export default Vue.extend({
     },
   },
   created () {
+    this.$eventHub.$on(READLIST_ADDED, this.reloadElements)
     this.$eventHub.$on(READLIST_CHANGED, this.reloadElements)
     this.$eventHub.$on(READLIST_DELETED, this.reloadElements)
     this.$eventHub.$on(LIBRARY_CHANGED, this.reloadLibrary)
   },
   beforeDestroy () {
+    this.$eventHub.$off(READLIST_ADDED, this.reloadElements)
     this.$eventHub.$off(READLIST_CHANGED, this.reloadElements)
     this.$eventHub.$off(READLIST_DELETED, this.reloadElements)
     this.$eventHub.$off(LIBRARY_CHANGED, this.reloadLibrary)
@@ -179,8 +181,8 @@ export default Vue.extend({
     reloadElements () {
       this.loadLibrary(this.libraryId)
     },
-    reloadLibrary (event: EventLibraryChanged) {
-      if (event.id === this.libraryId) {
+    reloadLibrary (event: EventLibrary) {
+      if (event.libraryId === this.libraryId) {
         this.loadLibrary(this.libraryId)
       }
     },

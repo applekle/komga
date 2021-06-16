@@ -1,37 +1,24 @@
-interface EventBookChanged {
-  id: string,
-  seriesId: string
-}
-
-interface EventSeriesChanged {
-  id: string,
+interface EventLibrary {
   libraryId: string
 }
 
-interface EventCollectionChanged {
-  id: string
+interface EventBook {
+  bookId: string,
+  seriesId: string,
+  libraryId: string,
 }
 
-interface EventCollectionDeleted {
-  id: string
+interface EventSeries {
+  seriesId: string,
+  libraryId: string
 }
 
-interface EventReadListChanged {
-  id: string
+interface EventCollection {
+  collectionId: string,
+  seriesIds: string[],
 }
 
-interface EventReadListDeleted {
-  id: string
-}
-
-interface EventLibraryAdded {
-  id: string
-}
-
-interface EventLibraryChanged {
-  id: string
-}
-
-interface EventLibraryDeleted {
-  id: string
+interface EventReadList {
+  readListId: string,
+  bookIds: string[],
 }

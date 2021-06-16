@@ -17,7 +17,8 @@
 
     </toolbar-sticky>
 
-    <library-navigation v-if="individualLibrary && $vuetify.breakpoint.name === 'xs'" :libraryId="libraryId" bottom-navigation/>
+    <library-navigation v-if="individualLibrary && $vuetify.breakpoint.name === 'xs'" :libraryId="libraryId"
+                        bottom-navigation/>
 
     <series-multi-select-bar
       v-model="selectedSeries"
@@ -134,7 +135,7 @@ import LibraryActionsMenu from '@/components/menus/LibraryActionsMenu.vue'
 import LibraryNavigation from '@/components/LibraryNavigation.vue'
 import {ReadStatus} from '@/types/enum-books'
 import {BookDto} from '@/types/komga-books'
-import {BOOK_CHANGED, LIBRARY_DELETED, SERIES_CHANGED} from '@/types/events'
+import {BOOK_CHANGED, BOOK_DELETED, LIBRARY_DELETED, SERIES_CHANGED, SERIES_DELETED} from '@/types/events'
 import Vue from 'vue'
 import {SeriesDto} from "@/types/komga-series";
 import {LIBRARIES_ALL, LIBRARY_ROUTE} from "@/types/library";
@@ -165,16 +166,23 @@ export default Vue.extend({
   },
   created() {
     this.$eventHub.$on(LIBRARY_DELETED, this.libraryDeleted)
-    this.$eventHub.$on(SERIES_CHANGED, this.reload)
-    this.$eventHub.$on(BOOK_CHANGED, this.reload)
+    this.$eventHub.$on(SERIES_CHANGED, this.seriesChanged)
+    this.$eventHub.$on(SERIES_DELETED, this.seriesChanged)
+    this.$eventHub.$on(BOOK_CHANGED, this.bookChanged)
+    this.$eventHub.$on(BOOK_DELETED, this.bookChanged)
   },
   beforeDestroy() {
     this.$eventHub.$off(LIBRARY_DELETED, this.libraryDeleted)
-    this.$eventHub.$off(SERIES_CHANGED, this.reload)
-    this.$eventHub.$off(BOOK_CHANGED, this.reload)
+    this.$eventHub.$off(SERIES_CHANGED, this.seriesChanged)
+    this.$eventHub.$off(SERIES_DELETED, this.seriesChanged)
+    this.$eventHub.$off(BOOK_CHANGED, this.bookChanged)
+    this.$eventHub.$off(BOOK_DELETED, this.bookChanged)
   },
   mounted() {
-    if(this.individualLibrary) this.$store.commit('setLibraryRoute', {id: this.libraryId, route: LIBRARY_ROUTE.RECOMMENDED})
+    if (this.individualLibrary) this.$store.commit('setLibraryRoute', {
+      id: this.libraryId,
+      route: LIBRARY_ROUTE.RECOMMENDED,
+    })
     this.reload()
   },
   props: {
@@ -217,6 +225,16 @@ export default Vue.extend({
       if (this.$store.state.komgaLibraries.libraries.length === 0) {
         this.$router.push({name: 'welcome'})
       } else {
+        this.reload()
+      }
+    },
+    seriesChanged(event: EventSeries) {
+      if (this.libraryId === LIBRARIES_ALL || event.libraryId === this.libraryId) {
+        this.reload()
+      }
+    },
+    bookChanged(event: EventBook){
+      if (this.libraryId === LIBRARIES_ALL || event.libraryId === this.libraryId) {
         this.reload()
       }
     },
