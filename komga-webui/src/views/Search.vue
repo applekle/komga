@@ -116,6 +116,8 @@ import {
   LIBRARY_DELETED,
   READLIST_CHANGED,
   READLIST_DELETED,
+  READPROGRESS_CHANGED,
+  READPROGRESS_DELETED,
   SERIES_CHANGED,
   SERIES_DELETED,
 } from '@/types/events'
@@ -154,6 +156,8 @@ export default Vue.extend({
     this.$eventHub.$on(COLLECTION_DELETED, this.collectionChanged)
     this.$eventHub.$on(READLIST_CHANGED, this.readListChanged)
     this.$eventHub.$on(READLIST_DELETED, this.readListChanged)
+    this.$eventHub.$on(READPROGRESS_CHANGED, this.readProgressChanged)
+    this.$eventHub.$on(READPROGRESS_DELETED, this.readProgressChanged)
   },
   beforeDestroy () {
     this.$eventHub.$off(LIBRARY_DELETED, this.reloadResults)
@@ -165,6 +169,8 @@ export default Vue.extend({
     this.$eventHub.$off(COLLECTION_DELETED, this.collectionChanged)
     this.$eventHub.$off(READLIST_CHANGED, this.readListChanged)
     this.$eventHub.$off(READLIST_DELETED, this.readListChanged)
+    this.$eventHub.$off(READPROGRESS_CHANGED, this.readProgressChanged)
+    this.$eventHub.$off(READPROGRESS_DELETED, this.readProgressChanged)
   },
   watch: {
     '$route.query.q': {
@@ -211,6 +217,11 @@ export default Vue.extend({
       }
     },
     bookChanged(event: EventBook){
+      if(this.books.map(x => x.id).includes(event.bookId)){
+        this.reloadResults()
+      }
+    },
+    readProgressChanged(event: EventReadProgress){
       if(this.books.map(x => x.id).includes(event.bookId)){
         this.reloadResults()
       }

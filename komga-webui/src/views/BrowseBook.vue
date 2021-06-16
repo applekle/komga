@@ -329,6 +329,8 @@ import {
   READLIST_ADDED,
   READLIST_CHANGED,
   READLIST_DELETED,
+  READPROGRESS_CHANGED,
+  READPROGRESS_DELETED,
 } from '@/types/events'
 import Vue from 'vue'
 import ReadListsExpansionPanels from '@/components/ReadListsExpansionPanels.vue'
@@ -360,6 +362,8 @@ export default Vue.extend({
     this.loadBook(this.bookId)
     this.$eventHub.$on(BOOK_CHANGED, this.bookChanged)
     this.$eventHub.$on(BOOK_DELETED, this.bookDeleted)
+    this.$eventHub.$on(READPROGRESS_CHANGED, this.readProgressChanged)
+    this.$eventHub.$on(READPROGRESS_DELETED, this.readProgressChanged)
     this.$eventHub.$on(LIBRARY_DELETED, this.libraryDeleted)
     this.$eventHub.$on(READLIST_ADDED, this.readListChanged)
     this.$eventHub.$on(READLIST_CHANGED, this.readListChanged)
@@ -368,6 +372,8 @@ export default Vue.extend({
   beforeDestroy() {
     this.$eventHub.$off(BOOK_CHANGED, this.bookChanged)
     this.$eventHub.$off(BOOK_DELETED, this.bookDeleted)
+    this.$eventHub.$off(READPROGRESS_CHANGED, this.readProgressChanged)
+    this.$eventHub.$off(READPROGRESS_DELETED, this.readProgressChanged)
     this.$eventHub.$off(LIBRARY_DELETED, this.libraryDeleted)
     this.$eventHub.$off(READLIST_ADDED, this.readListChanged)
     this.$eventHub.$off(READLIST_CHANGED, this.readListChanged)
@@ -467,6 +473,9 @@ export default Vue.extend({
       if (event.bookId === this.bookId){
         this.$router.push({name:'browse-series', params: {seriesId: this.series.id }})
       }
+    },
+    readProgressChanged(event: EventReadProgress){
+      if (event.bookId === this.bookId) this.loadBook(this.bookId)
     },
     async loadBook(bookId: string) {
       this.book = await this.$komgaBooks.getBook(bookId)

@@ -76,7 +76,14 @@
 <script lang="ts">
 import ItemBrowser from '@/components/ItemBrowser.vue'
 import ToolbarSticky from '@/components/bars/ToolbarSticky.vue'
-import {BOOK_CHANGED, BOOK_DELETED, READLIST_CHANGED, READLIST_DELETED} from '@/types/events'
+import {
+  BOOK_CHANGED,
+  BOOK_DELETED,
+  READLIST_CHANGED,
+  READLIST_DELETED,
+  READPROGRESS_CHANGED,
+  READPROGRESS_DELETED,
+} from '@/types/events'
 import Vue from 'vue'
 import ReadListActionsMenu from '@/components/menus/ReadListActionsMenu.vue'
 import BooksMultiSelectBar from '@/components/bars/BooksMultiSelectBar.vue'
@@ -125,12 +132,16 @@ export default Vue.extend({
     this.$eventHub.$on(READLIST_DELETED, this.readListDeleted)
     this.$eventHub.$on(BOOK_CHANGED, this.bookChanged)
     this.$eventHub.$on(BOOK_DELETED, this.bookChanged)
+    this.$eventHub.$on(READPROGRESS_CHANGED, this.readProgressChanged)
+    this.$eventHub.$on(READPROGRESS_DELETED, this.readProgressChanged)
   },
   beforeDestroy () {
     this.$eventHub.$off(READLIST_CHANGED, this.readListChanged)
     this.$eventHub.$off(READLIST_DELETED, this.readListDeleted)
     this.$eventHub.$off(BOOK_CHANGED, this.bookChanged)
     this.$eventHub.$off(BOOK_DELETED, this.bookChanged)
+    this.$eventHub.$off(READPROGRESS_CHANGED, this.readProgressChanged)
+    this.$eventHub.$off(READPROGRESS_DELETED, this.readProgressChanged)
   },
   mounted () {
     this.loadReadList(this.readListId)
@@ -214,6 +225,9 @@ export default Vue.extend({
       this.$store.dispatch('dialogEditReadList', this.readList)
     },
     bookChanged (event: EventBook) {
+      if (this.books.some(b => b.id === event.bookId)) this.loadReadList(this.readListId)
+    },
+    readProgressChanged(event: EventReadProgress){
       if (this.books.some(b => b.id === event.bookId)) this.loadReadList(this.readListId)
     },
   },

@@ -12,12 +12,21 @@ import {
   READLIST_ADDED,
   READLIST_CHANGED,
   READLIST_DELETED,
+  READPROGRESS_CHANGED,
+  READPROGRESS_DELETED,
   SERIES_ADDED,
   SERIES_CHANGED,
   SERIES_DELETED,
 } from "@/types/events";
 import Vue from "vue";
-import {BookSseDto, CollectionSseDto, LibrarySseDto, ReadListSseDto, SeriesSseDto} from "@/types/komga-sse";
+import {
+  BookSseDto,
+  CollectionSseDto,
+  LibrarySseDto,
+  ReadListSseDto,
+  ReadProgressSseDto,
+  SeriesSseDto,
+} from "@/types/komga-sse";
 
 const API_SSE = '/api/v1/sse'
 
@@ -55,6 +64,10 @@ export default class KomgaSseService {
     this.eventSource.addEventListener('ReadListAdded', (event: any) => this.emitReadList(READLIST_ADDED, event))
     this.eventSource.addEventListener('ReadListChanged', (event: any) => this.emitReadList(READLIST_CHANGED, event))
     this.eventSource.addEventListener('ReadListDeleted', (event: any) => this.emitReadList(READLIST_DELETED, event))
+
+    // Read Progress
+    this.eventSource.addEventListener('ReadProgressChanged', (event: any) => this.emitReadProgress(READPROGRESS_CHANGED, event))
+    this.eventSource.addEventListener('ReadProgressDeleted', (event: any) => this.emitReadProgress(READPROGRESS_DELETED, event))
   }
 
   private me(): UserDto {
@@ -78,13 +91,11 @@ export default class KomgaSseService {
 
   private emitBook(name: string, event: any) {
     const data = JSON.parse(event.data) as BookSseDto
-    if (!data.userId || data.userId === this.me().id) {
-      this.eventHub.$emit(name, {
-        bookId: data.bookId,
-        seriesId: data.seriesId,
-        libraryId: data.libraryId,
-      } as EventBook)
-    }
+    this.eventHub.$emit(name, {
+      bookId: data.bookId,
+      seriesId: data.seriesId,
+      libraryId: data.libraryId,
+    } as EventBook)
   }
 
   private emitCollection(name: string, event: any) {
@@ -101,5 +112,14 @@ export default class KomgaSseService {
       readListId: data.readListId,
       bookIds: data.bookIds,
     } as EventReadList)
+  }
+
+  private emitReadProgress(name: string, event: any) {
+    const data = JSON.parse(event.data) as ReadProgressSseDto
+    if (data.userId === this.me().id)
+      this.eventHub.$emit(name, {
+        bookId: data.bookId,
+        userId: data.userId,
+      } as EventReadProgress)
   }
 }

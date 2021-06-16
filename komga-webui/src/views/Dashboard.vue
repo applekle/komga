@@ -135,7 +135,15 @@ import LibraryActionsMenu from '@/components/menus/LibraryActionsMenu.vue'
 import LibraryNavigation from '@/components/LibraryNavigation.vue'
 import {ReadStatus} from '@/types/enum-books'
 import {BookDto} from '@/types/komga-books'
-import {BOOK_CHANGED, BOOK_DELETED, LIBRARY_DELETED, SERIES_CHANGED, SERIES_DELETED} from '@/types/events'
+import {
+  BOOK_CHANGED,
+  BOOK_DELETED,
+  LIBRARY_DELETED,
+  READPROGRESS_CHANGED,
+  READPROGRESS_DELETED,
+  SERIES_CHANGED,
+  SERIES_DELETED,
+} from '@/types/events'
 import Vue from 'vue'
 import {SeriesDto} from "@/types/komga-series";
 import {LIBRARIES_ALL, LIBRARY_ROUTE} from "@/types/library";
@@ -170,6 +178,8 @@ export default Vue.extend({
     this.$eventHub.$on(SERIES_DELETED, this.seriesChanged)
     this.$eventHub.$on(BOOK_CHANGED, this.bookChanged)
     this.$eventHub.$on(BOOK_DELETED, this.bookChanged)
+    this.$eventHub.$on(READPROGRESS_CHANGED, this.readProgressChanged)
+    this.$eventHub.$on(READPROGRESS_DELETED, this.readProgressChanged)
   },
   beforeDestroy() {
     this.$eventHub.$off(LIBRARY_DELETED, this.libraryDeleted)
@@ -177,6 +187,8 @@ export default Vue.extend({
     this.$eventHub.$off(SERIES_DELETED, this.seriesChanged)
     this.$eventHub.$off(BOOK_CHANGED, this.bookChanged)
     this.$eventHub.$off(BOOK_DELETED, this.bookChanged)
+    this.$eventHub.$off(READPROGRESS_CHANGED, this.readProgressChanged)
+    this.$eventHub.$off(READPROGRESS_DELETED, this.readProgressChanged)
   },
   mounted() {
     if (this.individualLibrary) this.$store.commit('setLibraryRoute', {
@@ -237,6 +249,11 @@ export default Vue.extend({
       if (this.libraryId === LIBRARIES_ALL || event.libraryId === this.libraryId) {
         this.reload()
       }
+    },
+    readProgressChanged(event: EventReadProgress){
+      if (this.inProgressBooks.some(b => b.id === event.bookId)) this.reload()
+      else if (this.latestBooks.some(b => b.id === event.bookId)) this.reload()
+      else if (this.onDeckBooks.some(b => b.id === event.bookId)) this.reload()
     },
     reload() {
       this.loadAll(this.libraryId)

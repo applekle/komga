@@ -11,7 +11,6 @@ export interface BookSseDto {
   bookId: string,
   seriesId: string,
   libraryId: string,
-  userId?: string,
 }
 
 export interface CollectionSseDto {
@@ -22,4 +21,9 @@ export interface CollectionSseDto {
 export interface ReadListSseDto {
   readListId: string,
   bookIds: string[],
+}
+
+export interface ReadProgressSseDto {
+  bookId: string,
+  userId: string,
 }

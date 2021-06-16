@@ -17,3 +17,6 @@ export const COLLECTION_DELETED = 'collection-deleted'
 export const READLIST_ADDED = 'readlist-added'
 export const READLIST_CHANGED = 'readlist-changed'
 export const READLIST_DELETED = 'readlist-deleted'
+
+export const READPROGRESS_CHANGED = 'readprogress-changed'
+export const READPROGRESS_DELETED = 'readprogress-deleted'

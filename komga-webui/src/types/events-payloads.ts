@@ -22,3 +22,8 @@ interface EventReadList {
   readListId: string,
   bookIds: string[],
 }
+
+interface EventReadProgress {
+  bookId: string,
+  userId: string,
+}

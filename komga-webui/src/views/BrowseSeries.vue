@@ -389,6 +389,8 @@ import {
   COLLECTION_CHANGED,
   COLLECTION_DELETED,
   LIBRARY_DELETED,
+  READPROGRESS_CHANGED,
+  READPROGRESS_DELETED,
   SERIES_CHANGED,
   SERIES_DELETED,
 } from '@/types/events'
@@ -557,6 +559,8 @@ export default Vue.extend({
     this.$eventHub.$on(BOOK_ADDED, this.bookChanged)
     this.$eventHub.$on(BOOK_CHANGED, this.bookChanged)
     this.$eventHub.$on(BOOK_DELETED, this.bookChanged)
+    this.$eventHub.$on(READPROGRESS_CHANGED, this.readProgressChanged)
+    this.$eventHub.$on(READPROGRESS_DELETED, this.readProgressChanged)
     this.$eventHub.$on(LIBRARY_DELETED, this.libraryDeleted)
     this.$eventHub.$on(COLLECTION_ADDED, this.collectionChanged)
     this.$eventHub.$on(COLLECTION_CHANGED, this.collectionChanged)
@@ -568,6 +572,8 @@ export default Vue.extend({
     this.$eventHub.$off(BOOK_ADDED, this.bookChanged)
     this.$eventHub.$off(BOOK_CHANGED, this.bookChanged)
     this.$eventHub.$off(BOOK_DELETED, this.bookChanged)
+    this.$eventHub.$off(READPROGRESS_CHANGED, this.readProgressChanged)
+    this.$eventHub.$off(READPROGRESS_DELETED, this.readProgressChanged)
     this.$eventHub.$off(LIBRARY_DELETED, this.libraryDeleted)
     this.$eventHub.$off(COLLECTION_ADDED, this.collectionChanged)
     this.$eventHub.$off(COLLECTION_CHANGED, this.collectionChanged)
@@ -671,6 +677,9 @@ export default Vue.extend({
     },
     bookChanged(event: EventBook) {
       if (event.seriesId === this.seriesId) this.loadSeries(this.seriesId)
+    },
+    readProgressChanged(event:EventReadProgress){
+      if (this.books.some(b => b.id === event.bookId)) this.loadSeries(this.seriesId)
     },
     collectionChanged(event: EventCollection) {
       if (event.seriesIds.includes(this.seriesId) || this.collections.map(x => x.id).includes(event.collectionId)) {
