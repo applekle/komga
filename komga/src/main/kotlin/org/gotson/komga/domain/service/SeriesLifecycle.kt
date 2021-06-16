@@ -3,11 +3,13 @@ package org.gotson.komga.domain.service
 import mu.KotlinLogging
 import net.greypanther.natsort.CaseInsensitiveSimpleNaturalComparator
 import org.apache.commons.lang3.StringUtils
+import org.gotson.komga.application.events.EventPublisher
 import org.gotson.komga.application.tasks.TaskReceiver
 import org.gotson.komga.domain.model.Book
 import org.gotson.komga.domain.model.BookMetadata
 import org.gotson.komga.domain.model.BookMetadataAggregation
 import org.gotson.komga.domain.model.BookMetadataPatchCapability
+import org.gotson.komga.domain.model.DomainEvent
 import org.gotson.komga.domain.model.KomgaUser
 import org.gotson.komga.domain.model.Media
 import org.gotson.komga.domain.model.ReadProgress
@@ -43,7 +45,8 @@ class SeriesLifecycle(
   private val bookMetadataAggregationRepository: BookMetadataAggregationRepository,
   private val collectionRepository: SeriesCollectionRepository,
   private val readProgressRepository: ReadProgressRepository,
-  private val taskReceiver: TaskReceiver
+  private val taskReceiver: TaskReceiver,
+  private val eventPublisher: EventPublisher,
 ) {
 
   fun sortBooks(series: Series) {
@@ -90,16 +93,15 @@ class SeriesLifecycle(
     booksToAdd.forEach {
       check(it.libraryId == series.libraryId) { "Cannot add book to series if they don't share the same libraryId" }
     }
+    val toAdd = booksToAdd.map { it.copy(seriesId = series.id) }
 
-    bookRepository.insert(
-      booksToAdd.map { it.copy(seriesId = series.id) }
-    )
+    bookRepository.insert(toAdd)
 
     // create associated media
-    mediaRepository.insert(booksToAdd.map { Media(bookId = it.id) })
+    mediaRepository.insert(toAdd.map { Media(bookId = it.id) })
 
     // create associated metadata
-    booksToAdd.map {
+    toAdd.map {
       BookMetadata(
         title = it.name,
         number = it.number.toString(),
@@ -127,25 +129,12 @@ class SeriesLifecycle(
     return seriesRepository.findByIdOrNull(series.id)!!
   }
 
-  fun deleteOne(seriesId: String) {
-    logger.info { "Delete series id: $seriesId" }
-
-    val bookIds = bookRepository.findAllIdsBySeriesId(seriesId)
-    bookLifecycle.deleteMany(bookIds)
-
-    collectionRepository.removeSeriesFromAll(seriesId)
-    thumbnailsSeriesRepository.deleteBySeriesId(seriesId)
-    seriesMetadataRepository.delete(seriesId)
-    bookMetadataAggregationRepository.delete(seriesId)
-
-    seriesRepository.delete(seriesId)
-  }
-
-  fun deleteMany(seriesIds: Collection<String>) {
+  fun deleteMany(series: Collection<Series>) {
+    val seriesIds = series.map { it.id }
     logger.info { "Delete series ids: $seriesIds" }
 
-    val bookIds = bookRepository.findAllIdsBySeriesIds(seriesIds)
-    bookLifecycle.deleteMany(bookIds)
+    val books = bookRepository.findAllBySeriesIds(seriesIds)
+    bookLifecycle.deleteMany(books)
 
     collectionRepository.removeSeriesFromAll(seriesIds)
     thumbnailsSeriesRepository.deleteBySeriesIds(seriesIds)
@@ -153,6 +142,8 @@ class SeriesLifecycle(
     bookMetadataAggregationRepository.delete(seriesIds)
 
     seriesRepository.delete(seriesIds)
+
+    series.forEach { eventPublisher.publishEvent(DomainEvent.SeriesDeleted(it)) }
   }
 
   fun markReadProgressCompleted(seriesId: String, user: KomgaUser) {
@@ -160,10 +151,14 @@ class SeriesLifecycle(
       .map { (bookId, pageSize) -> ReadProgress(bookId, user.id, pageSize, true) }
 
     readProgressRepository.save(progresses)
+    bookRepository.findAllBySeriesId(seriesId).forEach { eventPublisher.publishEvent(DomainEvent.BookUpdated(it, user)) }
+    // TODO: publish event for series changed for user
   }
 
   fun deleteReadProgress(seriesId: String, user: KomgaUser) {
     readProgressRepository.deleteByBookIdsAndUserId(bookRepository.findAllIdsBySeriesId(seriesId), user.id)
+    bookRepository.findAllBySeriesId(seriesId).forEach { eventPublisher.publishEvent(DomainEvent.BookUpdated(it, user)) }
+    // TODO: publish event for series changed for user
   }
 
   fun getThumbnail(seriesId: String): ThumbnailSeries? {
@@ -224,5 +219,6 @@ class SeriesLifecycle(
       }
     }
   }
+
   private fun ThumbnailSeries.exists(): Boolean = Files.exists(Paths.get(url.toURI()))
 }

@@ -84,7 +84,7 @@ class BookLifecycleTest(
       )
     }
 
-    bookLifecycle.markReadProgressCompleted(book.id, user1)
+    bookLifecycle.markReadProgressCompleted(book, user1)
     bookLifecycle.markReadProgress(book, user2, 4)
 
     assertThat(readProgressRepository.findAll()).hasSize(2)
@@ -117,7 +117,7 @@ class BookLifecycleTest(
       )
     }
 
-    bookLifecycle.markReadProgressCompleted(book.id, user1)
+    bookLifecycle.markReadProgressCompleted(book, user1)
     bookLifecycle.markReadProgress(book, user2, 4)
 
     assertThat(readProgressRepository.findAll()).hasSize(2)

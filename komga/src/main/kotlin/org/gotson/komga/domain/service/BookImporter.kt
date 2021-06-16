@@ -55,16 +55,16 @@ class BookImporter(
       else sourceFile.fileName.toString()
     )
 
-    val upgradedBookId =
+    val upgradedBook =
       if (upgradeBookId != null) {
         bookRepository.findByIdOrNull(upgradeBookId)?.let {
           if (it.seriesId != series.id) throw IllegalArgumentException("Book to upgrade ($upgradeBookId) does not belong to series: $series")
-          it.id
+          it
         }
       } else null
     val upgradedBookPath =
-      if (upgradedBookId != null)
-        bookRepository.findByIdOrNull(upgradedBookId)?.path
+      if (upgradedBook != null)
+        bookRepository.findByIdOrNull(upgradedBook.id)?.path
       else null
 
     var deletedUpgradedFile = false
@@ -105,9 +105,9 @@ class BookImporter(
 
     seriesLifecycle.addBooks(series, listOf(importedBook))
 
-    if (upgradedBookId != null) {
+    if (upgradedBook != null) {
       // copy media and mark it as outdated
-      mediaRepository.findById(upgradedBookId).let {
+      mediaRepository.findById(upgradedBook.id).let {
         mediaRepository.update(
           it.copy(
             bookId = importedBook.id,
@@ -117,21 +117,21 @@ class BookImporter(
       }
 
       // copy metadata
-      metadataRepository.findById(upgradedBookId).let {
+      metadataRepository.findById(upgradedBook.id).let {
         metadataRepository.update(it.copy(bookId = importedBook.id))
       }
 
       // copy read progress
-      readProgressRepository.findAllByBookId(upgradedBookId)
+      readProgressRepository.findAllByBookId(upgradedBook.id)
         .map { it.copy(bookId = importedBook.id) }
         .forEach { readProgressRepository.save(it) }
 
       // replace upgraded book by imported book in read lists
-      readListRepository.findAllContainingBookId(upgradedBookId, filterOnLibraryIds = null)
+      readListRepository.findAllContainingBookId(upgradedBook.id, filterOnLibraryIds = null)
         .forEach { rl ->
           readListRepository.update(
             rl.copy(
-              bookIds = rl.bookIds.values.map { if (it == upgradedBookId) importedBook.id else it }.toIndexedMap()
+              bookIds = rl.bookIds.values.map { if (it == upgradedBook.id) importedBook.id else it }.toIndexedMap()
             )
           )
         }
@@ -141,7 +141,7 @@ class BookImporter(
         logger.info { "Deleted existing file: $upgradedBookPath" }
 
       // delete upgraded book
-      bookLifecycle.deleteOne(upgradedBookId)
+      bookLifecycle.deleteOne(upgradedBook)
     }
 
     seriesLifecycle.sortBooks(series)

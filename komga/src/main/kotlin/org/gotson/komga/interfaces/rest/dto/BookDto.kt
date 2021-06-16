@@ -3,6 +3,8 @@ package org.gotson.komga.interfaces.rest.dto
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.jakewharton.byteunits.BinaryByteUnit
 import org.apache.commons.io.FilenameUtils
+import org.gotson.komga.domain.model.Book
+import org.gotson.komga.infrastructure.web.filePathToUrl
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -24,6 +26,19 @@ data class BookDto(
   val media: MediaDto,
   val metadata: BookMetadataDto,
   val readProgress: ReadProgressDto? = null
+)
+
+fun BookDto.toDomain() = Book(
+  name = name,
+  url = filePathToUrl(url),
+  fileLastModified = fileLastModified,
+  fileSize = sizeBytes,
+  number = number,
+  id = id,
+  seriesId = seriesId,
+  libraryId = libraryId,
+  createdDate = created,
+  lastModifiedDate = lastModified
 )
 
 fun BookDto.restrictUrl(restrict: Boolean) =

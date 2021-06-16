@@ -1,8 +1,10 @@
 package org.gotson.komga.domain.service
 
 import mu.KotlinLogging
+import org.gotson.komga.application.events.EventPublisher
 import org.gotson.komga.application.tasks.TaskReceiver
 import org.gotson.komga.domain.model.DirectoryNotFoundException
+import org.gotson.komga.domain.model.DomainEvent
 import org.gotson.komga.domain.model.DuplicateNameException
 import org.gotson.komga.domain.model.Library
 import org.gotson.komga.domain.model.PathContainedInPath
@@ -19,7 +21,8 @@ class LibraryLifecycle(
   private val libraryRepository: LibraryRepository,
   private val seriesLifecycle: SeriesLifecycle,
   private val seriesRepository: SeriesRepository,
-  private val taskReceiver: TaskReceiver
+  private val taskReceiver: TaskReceiver,
+  private val eventPublisher: EventPublisher,
 ) {
 
   @Throws(
@@ -37,6 +40,8 @@ class LibraryLifecycle(
     libraryRepository.insert(library)
     taskReceiver.scanLibrary(library.id)
 
+    eventPublisher.publishEvent(DomainEvent.LibraryAdded(library))
+
     return libraryRepository.findById(library.id)
   }
 
@@ -48,6 +53,8 @@ class LibraryLifecycle(
 
     libraryRepository.update(toUpdate)
     taskReceiver.scanLibrary(toUpdate.id)
+
+    eventPublisher.publishEvent(DomainEvent.LibraryUpdated(toUpdate))
   }
 
   private fun checkLibraryValidity(library: Library, existing: Collection<Library>) {
@@ -71,9 +78,11 @@ class LibraryLifecycle(
   fun deleteLibrary(library: Library) {
     logger.info { "Deleting library: $library" }
 
-    val seriesIds = seriesRepository.findAllByLibraryId(library.id).map { it.id }
-    seriesLifecycle.deleteMany(seriesIds)
+    val series = seriesRepository.findAllByLibraryId(library.id)
+    seriesLifecycle.deleteMany(series)
 
     libraryRepository.delete(library.id)
+
+    eventPublisher.publishEvent(DomainEvent.LibraryDeleted(library))
   }
 }

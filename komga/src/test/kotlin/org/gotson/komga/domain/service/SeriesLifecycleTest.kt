@@ -88,7 +88,7 @@ class SeriesLifecycleTest(
 
     // when
     val book = bookRepository.findAllBySeriesId(createdSeries.id).first { it.name == "book 2" }
-    bookLifecycle.deleteOne(book.id)
+    bookLifecycle.deleteOne(book)
     seriesLifecycle.sortBooks(createdSeries)
 
     // then

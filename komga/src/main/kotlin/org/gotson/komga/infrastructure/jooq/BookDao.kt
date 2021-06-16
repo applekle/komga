@@ -54,6 +54,12 @@ class BookDao(
       .fetchInto(b)
       .map { it.toDomain() }
 
+  override fun findAllBySeriesIds(seriesIds: Collection<String>): Collection<Book> =
+    dsl.selectFrom(b)
+      .where(b.SERIES_ID.`in`(seriesIds))
+      .fetchInto(b)
+      .map { it.toDomain() }
+
   override fun findAll(): Collection<Book> =
     dsl.select(*b.fields())
       .from(b)

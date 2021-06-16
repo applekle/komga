@@ -1,9 +1,11 @@
 package org.gotson.komga.domain.service
 
 import mu.KotlinLogging
+import org.gotson.komga.application.events.EventPublisher
 import org.gotson.komga.domain.model.Book
 import org.gotson.komga.domain.model.BookPageContent
 import org.gotson.komga.domain.model.BookWithMedia
+import org.gotson.komga.domain.model.DomainEvent
 import org.gotson.komga.domain.model.ImageConversionException
 import org.gotson.komga.domain.model.KomgaUser
 import org.gotson.komga.domain.model.Media
@@ -34,7 +36,8 @@ class BookLifecycle(
   private val thumbnailBookRepository: ThumbnailBookRepository,
   private val readListRepository: ReadListRepository,
   private val bookAnalyzer: BookAnalyzer,
-  private val imageConverter: ImageConverter
+  private val imageConverter: ImageConverter,
+  private val eventPublisher: EventPublisher,
 ) {
 
   fun analyzeAndPersist(book: Book): Boolean {
@@ -187,21 +190,24 @@ class BookLifecycle(
     }
   }
 
-  fun deleteOne(bookId: String) {
-    logger.info { "Delete book id: $bookId" }
+  fun deleteOne(book: Book) {
+    logger.info { "Delete book id: ${book.id}" }
 
-    readProgressRepository.deleteByBookId(bookId)
-    readListRepository.removeBookFromAll(bookId)
+    readProgressRepository.deleteByBookId(book.id)
+    readListRepository.removeBookFromAll(book.id)
 
-    mediaRepository.delete(bookId)
-    thumbnailBookRepository.deleteByBookId(bookId)
-    bookMetadataRepository.delete(bookId)
+    mediaRepository.delete(book.id)
+    thumbnailBookRepository.deleteByBookId(book.id)
+    bookMetadataRepository.delete(book.id)
 
-    bookRepository.delete(bookId)
+    bookRepository.delete(book.id)
+
+    eventPublisher.publishEvent(DomainEvent.BookDeleted(book))
   }
 
-  fun deleteMany(bookIds: Collection<String>) {
-    logger.info { "Delete all books: $bookIds" }
+  fun deleteMany(books: Collection<Book>) {
+    val bookIds = books.map { it.id }
+    logger.info { "Delete book ids: $bookIds" }
 
     readProgressRepository.deleteByBookIds(bookIds)
     readListRepository.removeBooksFromAll(bookIds)
@@ -211,6 +217,8 @@ class BookLifecycle(
     bookMetadataRepository.delete(bookIds)
 
     bookRepository.delete(bookIds)
+
+    books.forEach { eventPublisher.publishEvent(DomainEvent.BookDeleted(it)) }
   }
 
   fun markReadProgress(book: Book, user: KomgaUser, page: Int) {
@@ -218,15 +226,18 @@ class BookLifecycle(
     require(page in 1..pages) { "Page argument ($page) must be within 1 and book page count ($pages)" }
 
     readProgressRepository.save(ReadProgress(book.id, user.id, page, page == pages))
+    eventPublisher.publishEvent(DomainEvent.BookUpdated(book, user))
   }
 
-  fun markReadProgressCompleted(bookId: String, user: KomgaUser) {
-    val media = mediaRepository.findById(bookId)
+  fun markReadProgressCompleted(book: Book, user: KomgaUser) {
+    val media = mediaRepository.findById(book.id)
 
-    readProgressRepository.save(ReadProgress(bookId, user.id, media.pages.size, true))
+    readProgressRepository.save(ReadProgress(book.id, user.id, media.pages.size, true))
+    eventPublisher.publishEvent(DomainEvent.BookUpdated(book, user))
   }
 
-  fun deleteReadProgress(bookId: String, user: KomgaUser) {
-    readProgressRepository.delete(bookId, user.id)
+  fun deleteReadProgress(book: Book, user: KomgaUser) {
+    readProgressRepository.delete(book.id, user.id)
+    eventPublisher.publishEvent(DomainEvent.BookUpdated(book, user))
   }
 }
